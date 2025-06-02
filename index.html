@@ -1,26 +1,441 @@
+
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="id">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>jadwal-sakti-pengingat</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <title>Sistem Pengingat Jadwal Otomatis</title>
+    <meta name="description" content="Sistem Pengingat Jadwal Otomatis via WhatsApp" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Boxicons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-green: #A0C878;
+            --accent-yellow: #DDEB9D;
+            --pure-white: #ffffff;
+            --text-dark: #2d3748;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    <meta property="og:title" content="jadwal-sakti-pengingat" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--accent-yellow) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        .auth-container {
+            background: var(--pure-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: var(--transition);
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .sign-up-container {
+            left: 0;
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .overlay {
+            background: linear-gradient(135deg, var(--primary-green), var(--accent-yellow));
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 0 0;
+            color: var(--pure-white);
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            text-align: center;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-left {
+            transform: translateX(-20%);
+        }
+
+        .overlay-right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .auth-container.right-panel-active .sign-in-container {
+            transform: translateX(100%);
+        }
+
+        .auth-container.right-panel-active .sign-up-container {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        .auth-container.right-panel-active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .auth-container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .auth-container.right-panel-active .overlay-left {
+            transform: translateX(0);
+        }
+
+        .auth-container.right-panel-active .overlay-right {
+            transform: translateX(20%);
+        }
+
+        @keyframes show {
+            0%, 49.99% {
+                opacity: 0;
+                z-index: 1;
+            }
+            50%, 100% {
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+
+        .form {
+            background-color: var(--pure-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 50px;
+            height: 100%;
+            text-align: center;
+        }
+
+        .form h1 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .form-control {
+            background-color: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 50px 15px 20px;
+            font-size: 14px;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-green);
+            background-color: var(--pure-white);
+            box-shadow: 0 0 0 0.2rem rgba(160, 200, 120, 0.25);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-green);
+            font-size: 18px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-green), var(--accent-yellow));
+            border: none;
+            border-radius: 25px;
+            color: var(--pure-white);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: var(--transition);
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0,0,0,0.18);
+            background: linear-gradient(45deg, #8fb768, #c9d88a);
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            border-color: var(--pure-white);
+            color: var(--pure-white);
+            border: 2px solid var(--pure-white);
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .btn-ghost:hover {
+            background-color: var(--pure-white);
+            color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        .overlay h1 {
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .overlay p {
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                max-width: 100%;
+                margin: 20px;
+                min-height: 500px;
+            }
+            
+            .form {
+                padding: 0 30px;
+            }
+            
+            .overlay-panel {
+                padding: 0 20px;
+            }
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, var(--primary-green), var(--accent-yellow));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container fade-in" id="container">
+        <!-- Sign In Form -->
+        <div class="form-container sign-in-container">
+            <form class="form" id="loginForm">
+                <div class="logo">
+                    <i class='bx bxs-message-dots'></i>
+                </div>
+                <h1>Masuk</h1>
+                <div class="form-group">
+                    <input type="email" class="form-control" placeholder="Email" required>
+                    <i class='bx bx-envelope input-icon'></i>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Password" required>
+                    <i class='bx bx-lock-alt input-icon'></i>
+                </div>
+                <button type="submit" class="btn btn-primary">Masuk</button>
+            </form>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="form-container sign-up-container">
+            <form class="form" id="registerForm">
+                <div class="logo">
+                    <i class='bx bxs-user-plus'></i>
+                </div>
+                <h1>Daftar</h1>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Nama Lengkap" required>
+                    <i class='bx bx-user input-icon'></i>
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-control" placeholder="Email" required>
+                    <i class='bx bx-envelope input-icon'></i>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Password" required>
+                    <i class='bx bx-lock-alt input-icon'></i>
+                </div>
+                <button type="submit" class="btn btn-primary">Daftar</button>
+            </form>
+        </div>
+
+        <!-- Overlay -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Selamat Datang Kembali!</h1>
+                    <p>Untuk tetap terhubung dengan komunitas, silakan masuk dengan informasi pribadi Anda</p>
+                    <button class="btn btn-ghost" id="signIn">Masuk</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Halo, Sahabat!</h1>
+                    <p>Mulai perjalanan Anda dengan mendaftar dan bergabung dengan komunitas kami</p>
+                    <button class="btn btn-ghost" id="signUp">Daftar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const signUpButton = document.getElementById('signUp');
+        const signInButton = document.getElementById('signIn');
+        const container = document.getElementById('container');
+
+        signUpButton.addEventListener('click', () => {
+            container.classList.add("right-panel-active");
+        });
+
+        signInButton.addEventListener('click', () => {
+            container.classList.remove("right-panel-active");
+        });
+
+        // Form submissions
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Simulate login
+            showToast('Berhasil masuk!', 'success');
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Simulate registration
+            showToast('Pendaftaran berhasil!', 'success');
+            setTimeout(() => {
+                container.classList.remove("right-panel-active");
+            }, 1500);
+        });
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+            toast.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class='bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'} me-2'></i>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Add slide animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
 </html>
