@@ -1,4 +1,6 @@
 
+import WhatsAppTester from '../components/WhatsAppTester';
+
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 to-yellow-200 flex items-center justify-center p-4 font-poppins">
@@ -26,6 +28,12 @@ const Index = () => {
               <h3 className="font-semibold text-gray-800 mb-2 font-poppins">Integrasi WhatsApp</h3>
               <p className="text-gray-600 text-sm font-normal">Kirim pesan langsung ke nomor warga dengan Baileys API</p>
             </div>
+          </div>
+
+          {/* WhatsApp Tester Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 font-poppins">Test WhatsApp Integration</h2>
+            <WhatsAppTester />
           </div>
           
           <div className="space-y-4">
