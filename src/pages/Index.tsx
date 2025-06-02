@@ -1,10 +1,12 @@
 
 import WhatsAppTester from '../components/WhatsAppTester';
+import ScheduleManager from '../components/ScheduleManager';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 to-yellow-200 flex items-center justify-center p-4 font-poppins">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden">
         <div className="text-center p-8">
           <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-yellow-300 rounded-full flex items-center justify-center mx-auto mb-6">
             <i className="text-3xl text-white">📱</i>
@@ -30,10 +32,23 @@ const Index = () => {
             </div>
           </div>
 
-          {/* WhatsApp Tester Section */}
+          {/* Main Features in Tabs */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 font-poppins">Test WhatsApp Integration</h2>
-            <WhatsAppTester />
+            <Tabs defaultValue="schedule" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="schedule">Manajemen Jadwal</TabsTrigger>
+                <TabsTrigger value="whatsapp">Test WhatsApp</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="schedule" className="mt-6">
+                <ScheduleManager />
+              </TabsContent>
+              
+              <TabsContent value="whatsapp" className="mt-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 font-poppins">Test WhatsApp Integration</h2>
+                <WhatsAppTester />
+              </TabsContent>
+            </Tabs>
           </div>
           
           <div className="space-y-4">
