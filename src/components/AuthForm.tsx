@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { authService } from '../services/authService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -12,200 +13,230 @@ interface AuthFormProps {
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    nama: '',
+    email: '',
+    password: '',
+    nomor_hp: '',
+    alamat: '',
+    rt_rw: ''
+  });
 
-  useEffect(() => {
-    // Auto-focus email field when component mounts
-    const emailInput = document.getElementById('email-input');
-    if (emailInput) {
-      emailInput.focus();
-    }
-  }, [isLogin]);
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (!email) {
-      newErrors.email = 'Email tidak boleh kosong';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Format email tidak valid';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password tidak boleh kosong';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password minimal 6 karakter';
-    }
-
-    if (!isLogin && !name) {
-      newErrors.name = 'Nama lengkap tidak boleh kosong';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
       if (isLogin) {
-        toast({
-          title: "Berhasil masuk!",
-          description: "Selamat datang kembali",
+        const result = await authService.login({
+          email: formData.email,
+          password: formData.password
         });
+
+        if (result.success) {
+          toast.success(result.message);
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          toast.error(result.message);
+        }
       } else {
-        toast({
-          title: "Pendaftaran berhasil!",
-          description: "Akun Anda telah dibuat",
-        });
-        onToggle(); // Switch to login form after successful registration
+        const result = await authService.register(formData);
+
+        if (result.success) {
+          toast.success(result.message);
+          setTimeout(() => {
+            onToggle(); // Switch to login form
+          }, 1500);
+        } else {
+          toast.error(result.message);
+        }
       }
-    }, 1000);
+    } catch (error) {
+      toast.error('Terjadi kesalahan sistem');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-sm">
+    <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-yellow-300 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-white">
-            {isLogin ? '🔐' : '👤'}
-          </span>
+          <i className="text-2xl text-white">📱</i>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 font-poppins">
-          {isLogin ? 'Masuk' : 'Daftar'}
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          {isLogin ? 'Selamat Datang' : 'Daftar Akun'}
         </h1>
+        <p className="text-gray-600">
+          {isLogin 
+            ? 'Masuk ke sistem pengingat jadwal' 
+            : 'Buat akun baru untuk menggunakan sistem'
+          }
+        </p>
       </div>
 
-      {!isLogin && (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {!isLogin && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="nama" className="text-sm font-medium text-gray-700">
+                Nama Lengkap
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="nama"
+                  type="text"
+                  placeholder="Masukkan nama lengkap"
+                  value={formData.nama}
+                  onChange={(e) => handleInputChange('nama', e.target.value)}
+                  className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="nomor_hp" className="text-sm font-medium text-gray-700">
+                Nomor WhatsApp
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="nomor_hp"
+                  type="tel"
+                  placeholder="08xxxxxxxxxx"
+                  value={formData.nomor_hp}
+                  onChange={(e) => handleInputChange('nomor_hp', e.target.value)}
+                  className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                  required
+                />
+              </div>
+            </div>
+          </>
+        )}
+
         <div className="space-y-2">
-          <Label htmlFor="name-input" className="text-sm font-medium text-gray-800">
-            Nama Lengkap
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+            Email
           </Label>
           <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              id="name-input"
-              type="text"
-              placeholder="Masukkan nama lengkap"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`pl-10 text-gray-800 placeholder-gray-500 ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
-              aria-label="Nama lengkap"
-              aria-describedby={errors.name ? "name-error" : undefined}
+              id="email"
+              type="email"
+              placeholder="nama@email.com"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              required
+              autoFocus={isLogin}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
-              <span className="text-sm">👤</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+            Password
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Masukkan password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className="pl-10 pr-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {!isLogin && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="rt_rw" className="text-sm font-medium text-gray-700">
+                RT/RW
+              </Label>
+              <Input
+                id="rt_rw"
+                type="text"
+                placeholder="RT01/RW01"
+                value={formData.rt_rw}
+                onChange={(e) => handleInputChange('rt_rw', e.target.value)}
+                className="h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              />
             </div>
-          </div>
-          {errors.name && (
-            <p id="name-error" className="text-sm text-red-600" role="alert">
-              {errors.name}
-            </p>
-          )}
-        </div>
-      )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email-input" className="text-sm font-medium text-gray-800">
-          Email
-        </Label>
-        <div className="relative">
-          <Input
-            id="email-input"
-            type="email"
-            placeholder="Masukkan email Anda"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`pl-10 text-gray-800 placeholder-gray-500 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
-            aria-label="Alamat email"
-            aria-describedby={errors.email ? "email-error" : undefined}
-            autoComplete="email"
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
-            <span className="text-sm">📧</span>
-          </div>
-        </div>
-        {errors.email && (
-          <p id="email-error" className="text-sm text-red-600" role="alert">
-            {errors.email}
-          </p>
+            <div className="space-y-2">
+              <Label htmlFor="alamat" className="text-sm font-medium text-gray-700">
+                Alamat
+              </Label>
+              <Input
+                id="alamat"
+                type="text"
+                placeholder="Alamat lengkap"
+                value={formData.alamat}
+                onChange={(e) => handleInputChange('alamat', e.target.value)}
+                className="h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              />
+            </div>
+          </>
         )}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password-input" className="text-sm font-medium text-gray-800">
-          Password
-        </Label>
-        <div className="relative">
-          <Input
-            id="password-input"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Masukkan password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`pl-10 pr-10 text-gray-800 placeholder-gray-500 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
-            aria-label="Password"
-            aria-describedby={errors.password ? "password-error" : undefined}
-            autoComplete={isLogin ? "current-password" : "new-password"}
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
-            <span className="text-sm">🔒</span>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-12 bg-gradient-to-r from-green-400 to-yellow-300 hover:from-green-500 hover:to-yellow-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:-translate-y-0.5"
+        >
+          {isLoading ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>{isLogin ? 'Masuk...' : 'Mendaftar...'}</span>
+            </div>
+          ) : (
+            isLogin ? 'Masuk' : 'Daftar'
+          )}
+        </Button>
+
+        {isLogin && (
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              Demo Login: admin@desa.com / admin123
+            </p>
           </div>
+        )}
+      </form>
+
+      <div className="text-center mt-6">
+        <p className="text-sm text-gray-600">
+          {isLogin ? 'Belum punya akun?' : 'Sudah punya akun?'}
           <button
             type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
-            aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+            onClick={onToggle}
+            className="ml-1 text-green-600 hover:text-green-700 font-medium"
           >
-            <Eye size={16} className={showPassword ? 'text-green-500' : ''} />
+            {isLogin ? 'Daftar sekarang' : 'Masuk di sini'}
           </button>
-        </div>
-        {errors.password && (
-          <p id="password-error" className="text-sm text-red-600" role="alert">
-            {errors.password}
-          </p>
-        )}
-      </div>
-
-      <Button
-        type="submit"
-        className="w-full bg-gradient-to-r from-green-400 to-yellow-300 hover:from-green-500 hover:to-yellow-400 text-white font-semibold py-3 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
-      >
-        {isLogin ? 'MASUK' : 'DAFTAR'}
-      </Button>
-
-      <div className="text-center space-y-2">
-        <p className="text-sm text-gray-700">
-          {isLogin ? 'Belum punya akun?' : 'Sudah punya akun?'}
         </p>
-        <button
-          type="button"
-          onClick={onToggle}
-          className="text-green-600 hover:text-green-700 font-medium text-sm transition-colors hover:underline"
-        >
-          {isLogin ? 'Daftar sekarang' : 'Masuk di sini'}
-        </button>
       </div>
-    </form>
+    </div>
   );
 };
 
