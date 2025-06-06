@@ -98,7 +98,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
 
       {!isLogin && (
         <div className="space-y-2">
-          <Label htmlFor="name-input" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="name-input" className="text-sm font-medium text-gray-800">
             Nama Lengkap
           </Label>
           <div className="relative">
@@ -108,16 +108,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
               placeholder="Masukkan nama lengkap"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`pl-10 ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+              className={`pl-10 text-gray-800 placeholder-gray-500 ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
               aria-label="Nama lengkap"
               aria-describedby={errors.name ? "name-error" : undefined}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
               <span className="text-sm">👤</span>
             </div>
           </div>
           {errors.name && (
-            <p id="name-error" className="text-sm text-red-500" role="alert">
+            <p id="name-error" className="text-sm text-red-600" role="alert">
               {errors.name}
             </p>
           )}
@@ -125,7 +125,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email-input" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="email-input" className="text-sm font-medium text-gray-800">
           Email
         </Label>
         <div className="relative">
@@ -135,24 +135,24 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
             placeholder="Masukkan email Anda"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`pl-10 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+            className={`pl-10 text-gray-800 placeholder-gray-500 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
             aria-label="Alamat email"
             aria-describedby={errors.email ? "email-error" : undefined}
             autoComplete="email"
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
             <span className="text-sm">📧</span>
           </div>
         </div>
         {errors.email && (
-          <p id="email-error" className="text-sm text-red-500" role="alert">
+          <p id="email-error" className="text-sm text-red-600" role="alert">
             {errors.email}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password-input" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="password-input" className="text-sm font-medium text-gray-800">
           Password
         </Label>
         <div className="relative">
@@ -162,25 +162,25 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
             placeholder="Masukkan password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`pl-10 pr-10 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+            className={`pl-10 pr-10 text-gray-800 placeholder-gray-500 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
             aria-label="Password"
             aria-describedby={errors.password ? "password-error" : undefined}
             autoComplete={isLogin ? "current-password" : "new-password"}
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
             <span className="text-sm">🔒</span>
           </div>
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
             aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
           >
             <Eye size={16} className={showPassword ? 'text-green-500' : ''} />
           </button>
         </div>
         {errors.password && (
-          <p id="password-error" className="text-sm text-red-500" role="alert">
+          <p id="password-error" className="text-sm text-red-600" role="alert">
             {errors.password}
           </p>
         )}
@@ -194,13 +194,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
       </Button>
 
       <div className="text-center space-y-2">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-700">
           {isLogin ? 'Belum punya akun?' : 'Sudah punya akun?'}
         </p>
         <button
           type="button"
           onClick={onToggle}
-          className="text-green-500 hover:text-green-600 font-medium text-sm transition-colors hover:underline"
+          className="text-green-600 hover:text-green-700 font-medium text-sm transition-colors hover:underline"
         >
           {isLogin ? 'Daftar sekarang' : 'Masuk di sini'}
         </button>

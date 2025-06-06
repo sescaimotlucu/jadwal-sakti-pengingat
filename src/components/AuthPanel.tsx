@@ -10,10 +10,10 @@ interface AuthPanelProps {
 const AuthPanel: React.FC<AuthPanelProps> = ({ isLogin, onToggle }) => {
   return (
     <div className="flex flex-col items-center justify-center text-center text-white p-8 space-y-6">
-      <h1 className="text-3xl font-bold font-poppins">
+      <h1 className="text-3xl font-bold font-poppins text-white">
         {isLogin ? 'Halo, Sahabat!' : 'Selamat Datang Kembali!'}
       </h1>
-      <p className="text-lg font-normal leading-relaxed max-w-md">
+      <p className="text-lg font-normal leading-relaxed max-w-md text-white opacity-90">
         {isLogin 
           ? 'Mulai perjalanan Anda dengan mendaftar dan bergabung dengan komunitas kami'
           : 'Untuk tetap terhubung dengan komunitas, silakan masuk dengan informasi pribadi Anda'
