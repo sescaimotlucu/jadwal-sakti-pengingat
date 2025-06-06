@@ -2,6 +2,7 @@
 import WhatsAppTester from '../components/WhatsAppTester';
 import ScheduleManager from '../components/ScheduleManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   return (
@@ -52,12 +53,12 @@ const Index = () => {
           </div>
           
           <div className="space-y-4">
-            <a 
-              href="/index.html" 
+            <Link 
+              to="/login"
               className="inline-block bg-gradient-to-r from-green-400 to-yellow-300 text-white font-semibold py-3 px-8 rounded-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 font-poppins"
             >
               Mulai Menggunakan
-            </a>
+            </Link>
             <div className="text-sm text-gray-500 font-normal">
               Sistem siap pakai untuk komunitas warga
             </div>
