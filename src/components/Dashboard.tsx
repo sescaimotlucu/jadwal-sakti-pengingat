@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { authService, User } from '../services/authService';
 import { databaseService, Activity } from '../services/databaseService';
@@ -139,6 +138,40 @@ const Dashboard = () => {
     }
   };
 
+  const handleUpdateActivity = async (updatedActivity: Activity) => {
+    console.log('🔄 Updating activity:', updatedActivity.nama_kegiatan);
+    
+    const result = await databaseService.updateActivity(updatedActivity.id, updatedActivity);
+    
+    if (result.success) {
+      toast.success('Kegiatan berhasil diperbarui!');
+      setActivities(prev => 
+        prev.map(activity => 
+          activity.id === updatedActivity.id ? updatedActivity : activity
+        )
+      );
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  const handleDeleteActivity = async (activityId: number) => {
+    console.log('🗑️ Deleting activity ID:', activityId);
+    
+    const result = await databaseService.deleteActivity(activityId);
+    
+    if (result.success) {
+      toast.success('Kegiatan berhasil dihapus!');
+      setActivities(prev => prev.filter(activity => activity.id !== activityId));
+      
+      // Batalkan pengingat yang dijadwalkan
+      reminderService.cancelReminders(activityId);
+      toast.info('Pengingat untuk kegiatan ini telah dibatalkan');
+    } else {
+      toast.error(result.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 font-poppins">
       <DashboardHeader user={user} onLogout={handleLogout} />
@@ -170,7 +203,12 @@ const Dashboard = () => {
               activityTypes={activityTypes}
             />
 
-            <ActivitiesTable activities={filteredActivities} />
+            <ActivitiesTable 
+              activities={filteredActivities} 
+              activityTypes={activityTypes}
+              onUpdateActivity={handleUpdateActivity}
+              onDeleteActivity={handleDeleteActivity}
+            />
           </TabsContent>
 
           {/* Reminder Status */}
