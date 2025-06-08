@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { authService, User } from '../services/authService';
 import { databaseService, Activity } from '../services/databaseService';
@@ -10,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { toast } from 'sonner';
-import { LogOut, Calendar, Clock, MapPin, Plus, Search, Filter, Send, User as UserIcon } from 'lucide-react';
+import { LogOut, Calendar, Clock, MapPin, Plus, Search, Filter, User as UserIcon } from 'lucide-react';
+import ReminderStatus from './ReminderStatus';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -30,13 +30,6 @@ const Dashboard = () => {
     lokasi: '',
     deskripsi: '',
     pesan_pengingat: ''
-  });
-  const [testReminder, setTestReminder] = useState({
-    phoneNumber: '082115575219',
-    activityName: 'Test Activity',
-    activityDate: '',
-    activityTime: '',
-    type: 'H-1' as 'H-2' | 'H-1' | 'Hari-H'
   });
 
   const activityTypes = [
@@ -116,17 +109,18 @@ const Dashboard = () => {
       toast.success(result.message);
       setActivities(prev => [...prev, result.data!]);
       
-      // Schedule reminders
+      // Jadwalkan pengingat otomatis dengan nomor target yang ditentukan
+      console.log('🔔 Menjadwalkan pengingat untuk kegiatan:', result.data.nama_kegiatan);
       await reminderService.scheduleReminders({
         activityId: result.data.id,
         activityName: result.data.nama_kegiatan,
         activityDate: result.data.tanggal,
         activityTime: result.data.waktu,
         location: result.data.lokasi,
-        targetNumber: '082115575219'
+        targetNumbers: ['082115575219'] // Pastikan menggunakan nomor yang benar
       });
       
-      toast.success('Pengingat otomatis telah dijadwalkan!');
+      toast.success('✅ Pengingat otomatis telah dijadwalkan ke nomor 082115575219!');
       
       // Reset form
       setNewActivity({
@@ -139,27 +133,6 @@ const Dashboard = () => {
         pesan_pengingat: ''
       });
       setShowAddForm(false);
-    } else {
-      toast.error(result.message);
-    }
-  };
-
-  const handleTestReminder = async () => {
-    if (!testReminder.phoneNumber || !testReminder.activityName) {
-      toast.error('Mohon isi semua field test reminder');
-      return;
-    }
-
-    const result = await reminderService.sendTestReminder(
-      testReminder.phoneNumber,
-      testReminder.activityName,
-      testReminder.activityDate || new Date().toISOString().split('T')[0],
-      testReminder.activityTime || '10:00',
-      testReminder.type
-    );
-
-    if (result.success) {
-      toast.success(result.message);
     } else {
       toast.error(result.message);
     }
@@ -217,10 +190,11 @@ const Dashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="activities" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="activities">Kelola Kegiatan</TabsTrigger>
-            <TabsTrigger value="reminders">Test Pengingat</TabsTrigger>
+            <TabsTrigger value="reminders">Status Pengingat</TabsTrigger>
             <TabsTrigger value="stats">Statistik</TabsTrigger>
+            <TabsTrigger value="settings">Pengaturan</TabsTrigger>
           </TabsList>
 
           {/* Activities Management */}
@@ -294,7 +268,7 @@ const Dashboard = () => {
                 <CardHeader>
                   <CardTitle>Tambah Kegiatan Baru</CardTitle>
                   <CardDescription>
-                    Masukkan detail kegiatan dan pengingat otomatis akan dijadwalkan
+                    Pengingat otomatis akan dijadwalkan ke nomor 082115575219
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -362,7 +336,7 @@ const Dashboard = () => {
                     <div className="flex gap-2">
                       <Button type="submit" className="flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Simpan Kegiatan
+                        Simpan & Jadwalkan Pengingat
                       </Button>
                       <Button 
                         type="button" 
@@ -429,81 +403,9 @@ const Dashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Test Reminders */}
+          {/* Reminder Status */}
           <TabsContent value="reminders">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
-                  Test Pengingat WhatsApp
-                </CardTitle>
-                <CardDescription>
-                  Kirim pengingat test ke nomor 082115575219
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="test-phone">Nomor WhatsApp</Label>
-                    <Input
-                      id="test-phone"
-                      value={testReminder.phoneNumber}
-                      onChange={(e) => setTestReminder(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                      placeholder="082115575219"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="test-activity">Nama Kegiatan</Label>
-                    <Input
-                      id="test-activity"
-                      value={testReminder.activityName}
-                      onChange={(e) => setTestReminder(prev => ({ ...prev, activityName: e.target.value }))}
-                      placeholder="Posyandu Balita"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="test-date">Tanggal</Label>
-                    <Input
-                      id="test-date"
-                      type="date"
-                      value={testReminder.activityDate}
-                      onChange={(e) => setTestReminder(prev => ({ ...prev, activityDate: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="test-time">Waktu</Label>
-                    <Input
-                      id="test-time"
-                      type="time"
-                      value={testReminder.activityTime}
-                      onChange={(e) => setTestReminder(prev => ({ ...prev, activityTime: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="test-type">Jenis Pengingat</Label>
-                  <select
-                    id="test-type"
-                    className="w-full p-2 border rounded-md"
-                    value={testReminder.type}
-                    onChange={(e) => setTestReminder(prev => ({ ...prev, type: e.target.value as 'H-2' | 'H-1' | 'Hari-H' }))}
-                  >
-                    <option value="H-2">H-2 (2 hari sebelum)</option>
-                    <option value="H-1">H-1 (1 hari sebelum)</option>
-                    <option value="Hari-H">Hari-H (hari kegiatan)</option>
-                  </select>
-                </div>
-
-                <Button onClick={handleTestReminder} className="flex items-center gap-2">
-                  <Send className="w-4 h-4" />
-                  Kirim Test Pengingat
-                </Button>
-              </CardContent>
-            </Card>
+            <ReminderStatus />
           </TabsContent>
 
           {/* Statistics */}
@@ -543,6 +445,35 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Settings */}
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pengaturan Sistem</CardTitle>
+                <CardDescription>
+                  Konfigurasi pengingat WhatsApp dan nomor target
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-2">✅ Nomor Target Aktif</h4>
+                  <p className="text-green-700 text-sm">
+                    Semua pengingat akan dikirim ke nomor: <strong>082115575219</strong>
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">🔧 Jadwal Pengingat</h4>
+                  <ul className="text-blue-700 text-sm space-y-1">
+                    <li>• H-2: 2 hari sebelum kegiatan (jam 09:00)</li>
+                    <li>• H-1: 1 hari sebelum kegiatan (jam 09:00)</li>
+                    <li>• Hari-H: 2 jam sebelum kegiatan dimulai</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
