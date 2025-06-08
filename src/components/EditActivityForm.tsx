@@ -15,14 +15,26 @@ interface EditActivityFormProps {
 }
 
 const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditActivityFormProps) => {
-  const [editedActivity, setEditedActivity] = useState<Activity>(activity);
+  const [editedActivity, setEditedActivity] = useState<Activity>({
+    ...activity,
+    deskripsi: activity.deskripsi || '' // Ensure deskripsi is never null
+  });
 
   const handleInputChange = (field: keyof Activity, value: string) => {
-    setEditedActivity({ ...editedActivity, [field]: value });
+    console.log(`🔄 Updating field ${field} to:`, value);
+    setEditedActivity(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Submitting edited activity:', editedActivity);
+    
+    // Validate required fields
+    if (!editedActivity.nama_kegiatan.trim() || !editedActivity.tanggal || !editedActivity.waktu || !editedActivity.lokasi.trim()) {
+      alert('Mohon isi semua field yang diperlukan');
+      return;
+    }
+    
     onSave(editedActivity);
   };
 
@@ -41,7 +53,7 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
               <Label htmlFor="edit-jenis">Jenis Kegiatan</Label>
               <select
                 id="edit-jenis"
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={editedActivity.jenis_kegiatan}
                 onChange={(e) => handleInputChange('jenis_kegiatan', e.target.value)}
               >
@@ -98,11 +110,13 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
 
           <div className="space-y-2">
             <Label htmlFor="edit-deskripsi">Deskripsi</Label>
-            <Input
+            <textarea
               id="edit-deskripsi"
-              value={editedActivity.deskripsi || ''}
+              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+              value={editedActivity.deskripsi}
               onChange={(e) => handleInputChange('deskripsi', e.target.value)}
               placeholder="Deskripsi kegiatan (opsional)"
+              rows={3}
             />
           </div>
 
@@ -110,7 +124,7 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
             <Label htmlFor="edit-status">Status</Label>
             <select
               id="edit-status"
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={editedActivity.status}
               onChange={(e) => handleInputChange('status', e.target.value as 'aktif' | 'selesai' | 'dibatalkan')}
             >
@@ -120,7 +134,7 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
             </select>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex items-center gap-2">
               <Save className="w-4 h-4" />
               Simpan Perubahan

@@ -32,12 +32,12 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
   };
 
   const handleEdit = (activity: Activity) => {
-    console.log('🖊️ Editing activity:', activity.nama_kegiatan);
+    console.log('🖊️ Starting edit for activity:', activity.nama_kegiatan, activity);
     setEditingActivity(activity);
   };
 
   const handleSaveEdit = (updatedActivity: Activity) => {
-    console.log('💾 Saving activity:', updatedActivity.nama_kegiatan);
+    console.log('💾 Saving updated activity:', updatedActivity);
     onUpdateActivity(updatedActivity);
     setEditingActivity(null);
   };
@@ -54,78 +54,91 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {editingActivity && (
+  // If editing, show the edit form instead of the table
+  if (editingActivity) {
+    return (
+      <div className="space-y-6">
         <EditActivityForm
           activity={editingActivity}
           activityTypes={activityTypes}
           onSave={handleSaveEdit}
           onCancel={handleCancelEdit}
         />
-      )}
+      </div>
+    );
+  }
 
+  return (
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Daftar Kegiatan ({activities.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kegiatan</TableHead>
-                <TableHead>Jenis</TableHead>
-                <TableHead className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Tanggal
-                </TableHead>
-                <TableHead className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  Waktu
-                </TableHead>
-                <TableHead className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  Lokasi
-                </TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {activities.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell className="font-medium">{activity.nama_kegiatan}</TableCell>
-                  <TableCell>{activity.jenis_kegiatan}</TableCell>
-                  <TableCell>{activity.tanggal}</TableCell>
-                  <TableCell>{activity.waktu}</TableCell>
-                  <TableCell>{activity.lokasi}</TableCell>
-                  <TableCell>{getStatusBadge(activity.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(activity)}
-                        className="flex items-center gap-1"
-                      >
-                        <Edit className="w-3 h-3" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(activity)}
-                        className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Hapus
-                      </Button>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Kegiatan</TableHead>
+                  <TableHead>Jenis</TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      Tanggal
                     </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      Waktu
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      Lokasi
+                    </div>
+                  </TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {activities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell className="font-medium">{activity.nama_kegiatan}</TableCell>
+                    <TableCell>{activity.jenis_kegiatan}</TableCell>
+                    <TableCell>{activity.tanggal}</TableCell>
+                    <TableCell>{activity.waktu}</TableCell>
+                    <TableCell>{activity.lokasi}</TableCell>
+                    <TableCell>{getStatusBadge(activity.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(activity)}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="w-3 h-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(activity)}
+                          className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Hapus
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {activities.length === 0 && (
             <div className="text-center py-8 text-gray-500">
