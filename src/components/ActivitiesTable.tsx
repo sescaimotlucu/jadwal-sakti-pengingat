@@ -1,11 +1,11 @@
+
 import React, { useState } from 'react';
 import { Activity } from '../services/databaseService';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Button } from './ui/button';
-import { Calendar, Clock, MapPin, Edit, Trash2, Eye } from 'lucide-react';
-import EditActivityModal from './EditActivityModal';
-import ActivityDetailModal from './ActivityDetailModal';
+import { Calendar, Clock, MapPin, Edit, Trash2 } from 'lucide-react';
+import EditActivityForm from './EditActivityForm';
 
 interface ActivitiesTableProps {
   activities: Activity[];
@@ -16,9 +16,6 @@ interface ActivitiesTableProps {
 
 const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDeleteActivity }: ActivitiesTableProps) => {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
-  const [viewingActivity, setViewingActivity] = useState<Activity | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -35,27 +32,19 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
   };
 
   const handleEdit = (activity: Activity) => {
-    console.log('🖊️ Starting edit for activity:', activity.nama_kegiatan);
+    console.log('🖊️ Starting edit for activity:', activity.nama_kegiatan, activity);
     setEditingActivity(activity);
-    setIsEditModalOpen(true);
   };
 
   const handleSaveEdit = (updatedActivity: Activity) => {
     console.log('💾 Saving updated activity:', updatedActivity);
     onUpdateActivity(updatedActivity);
-    setIsEditModalOpen(false);
     setEditingActivity(null);
   };
 
   const handleCancelEdit = () => {
     console.log('❌ Cancelling edit');
-    setIsEditModalOpen(false);
     setEditingActivity(null);
-  };
-
-  const handleView = (activity: Activity) => {
-    setViewingActivity(activity);
-    setIsDetailModalOpen(true);
   };
 
   const handleDelete = (activity: Activity) => {
@@ -65,15 +54,19 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // If editing, show the edit form instead of the table
+  if (editingActivity) {
+    return (
+      <div className="space-y-6">
+        <EditActivityForm
+          activity={editingActivity}
+          activityTypes={activityTypes}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -112,52 +105,32 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
               </TableHeader>
               <TableBody>
                 {activities.map((activity) => (
-                  <TableRow key={activity.id} className="hover:bg-gray-50">
+                  <TableRow key={activity.id}>
                     <TableCell className="font-medium">{activity.nama_kegiatan}</TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {activity.jenis_kegiatan}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div className="font-medium">{activity.tanggal}</div>
-                        <div className="text-gray-500 text-xs">
-                          {formatDate(activity.tanggal)}
-                        </div>
-                      </div>
-                    </TableCell>
+                    <TableCell>{activity.jenis_kegiatan}</TableCell>
+                    <TableCell>{activity.tanggal}</TableCell>
                     <TableCell>{activity.waktu}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{activity.lokasi}</TableCell>
+                    <TableCell>{activity.lokasi}</TableCell>
                     <TableCell>{getStatusBadge(activity.status)}</TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleView(activity)}
-                          className="flex items-center gap-1"
-                          title="Lihat Detail"
-                        >
-                          <Eye className="w-3 h-3" />
-                        </Button>
+                      <div className="flex gap-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleEdit(activity)}
                           className="flex items-center gap-1"
-                          title="Edit Kegiatan"
                         >
                           <Edit className="w-3 h-3" />
+                          Edit
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleDelete(activity)}
                           className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                          title="Hapus Kegiatan"
                         >
                           <Trash2 className="w-3 h-3" />
+                          Hapus
                         </Button>
                       </div>
                     </TableCell>
@@ -169,31 +142,11 @@ const ActivitiesTable = ({ activities, activityTypes, onUpdateActivity, onDelete
 
           {activities.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>Tidak ada kegiatan yang sesuai dengan filter</p>
+              Tidak ada kegiatan yang sesuai dengan filter
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Modal */}
-      <EditActivityModal
-        activity={editingActivity}
-        isOpen={isEditModalOpen}
-        onClose={handleCancelEdit}
-        onSave={handleSaveEdit}
-        activityTypes={activityTypes}
-      />
-
-      {/* Detail Modal */}
-      <ActivityDetailModal
-        activity={viewingActivity}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setViewingActivity(null);
-        }}
-      />
     </div>
   );
 };
