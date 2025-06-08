@@ -3,49 +3,90 @@ import { Activity } from '../services/databaseService';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Textarea } from './ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 import { Save, X } from 'lucide-react';
 
-interface EditActivityFormProps {
-  activity: Activity;
-  activityTypes: string[];
+interface EditActivityModalProps {
+  activity: Activity | null;
+  isOpen: boolean;
+  onClose: () => void;
   onSave: (updatedActivity: Activity) => void;
-  onCancel: () => void;
+  activityTypes: string[];
 }
 
-const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditActivityFormProps) => {
-  const [editedActivity, setEditedActivity] = useState<Activity>({
-    ...activity,
-    deskripsi: activity.deskripsi || '' // Ensure deskripsi is never null
-  });
+const EditActivityModal = ({ 
+  activity, 
+  isOpen, 
+  onClose, 
+  onSave, 
+  activityTypes 
+}: EditActivityModalProps) => {
+  const [editedActivity, setEditedActivity] = useState<Activity | null>(null);
+
+  React.useEffect(() => {
+    if (activity) {
+      setEditedActivity({
+        ...activity,
+        deskripsi: activity.deskripsi || ''
+      });
+    }
+  }, [activity]);
 
   const handleInputChange = (field: keyof Activity, value: string) => {
-    console.log(`🔄 Updating field ${field} to:`, value);
-    setEditedActivity(prev => ({ ...prev, [field]: value }));
+    if (!editedActivity) return;
+    
+    setEditedActivity(prev => ({
+      ...prev!,
+      [field]: value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('📝 Submitting edited activity:', editedActivity);
+    
+    if (!editedActivity) return;
     
     // Validate required fields
-    if (!editedActivity.nama_kegiatan.trim() || !editedActivity.tanggal || !editedActivity.waktu || !editedActivity.lokasi.trim()) {
+    if (!editedActivity.nama_kegiatan.trim() || 
+        !editedActivity.tanggal || 
+        !editedActivity.waktu || 
+        !editedActivity.lokasi.trim()) {
       alert('Mohon isi semua field yang diperlukan');
       return;
     }
     
     onSave(editedActivity);
+    onClose();
   };
 
+  const handleClose = () => {
+    setEditedActivity(null);
+    onClose();
+  };
+
+  if (!editedActivity) return null;
+
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Edit Kegiatan</CardTitle>
-        <CardDescription>
-          Ubah detail kegiatan dan simpan perubahan
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Save className="w-5 h-5" />
+            Edit Kegiatan
+          </DialogTitle>
+          <DialogDescription>
+            Ubah detail kegiatan dan simpan perubahan
+          </DialogDescription>
+        </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -55,6 +96,7 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={editedActivity.jenis_kegiatan}
                 onChange={(e) => handleInputChange('jenis_kegiatan', e.target.value)}
+                required
               >
                 {activityTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
@@ -109,9 +151,8 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
 
           <div className="space-y-2">
             <Label htmlFor="edit-deskripsi">Deskripsi</Label>
-            <textarea
+            <Textarea
               id="edit-deskripsi"
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
               value={editedActivity.deskripsi}
               onChange={(e) => handleInputChange('deskripsi', e.target.value)}
               placeholder="Deskripsi kegiatan (opsional)"
@@ -133,25 +174,20 @@ const EditActivityForm = ({ activity, activityTypes, onSave, onCancel }: EditAct
             </select>
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" className="flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              Simpan Perubahan
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              className="flex items-center gap-2"
-            >
-              <X className="w-4 h-4" />
+          <DialogFooter className="flex gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              <X className="w-4 h-4 mr-2" />
               Batal
             </Button>
-          </div>
+            <Button type="submit">
+              <Save className="w-4 h-4 mr-2" />
+              Simpan Perubahan
+            </Button>
+          </DialogFooter>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default EditActivityForm;
+export default EditActivityModal;
