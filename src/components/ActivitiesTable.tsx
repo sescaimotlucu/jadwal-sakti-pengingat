@@ -4,7 +4,7 @@ import { Activity } from '../services/databaseService';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Button } from './ui/button';
-import { Calendar, Clock, MapPin, Edit, Trash2, Search, Filter, List } from 'lucide-react';
+import { Calendar, Clock, MapPin, Edit, Trash2, Search, Filter, List, FileText } from 'lucide-react';
 import EditActivityForm from './EditActivityForm';
 
 interface ActivitiesTableProps {
