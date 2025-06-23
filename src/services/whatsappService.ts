@@ -12,12 +12,14 @@ interface WhatsAppResponse {
 
 class WhatsAppService {
   private baseURL: string;
+  private apiKey: string;
 
-  constructor(baseURL: string = 'http://localhost:5000') {
+  constructor(baseURL: string = 'https://api.fonteapi.com/v1', apiKey: string = 'pUHPiTDPi4aeGQo9Q4PW') {
     this.baseURL = baseURL;
+    this.apiKey = apiKey;
   }
 
-  // Format nomor WhatsApp dengan benar
+  // Format nomor WhatsApp dengan benar untuk Fonte API
   private formatPhoneNumber(number: string): string {
     // Hapus semua karakter non-digit
     let cleaned = number.replace(/\D/g, '');
@@ -32,7 +34,7 @@ class WhatsAppService {
       cleaned = '62' + cleaned;
     }
     
-    console.log(`📱 Format nomor: ${number} -> ${cleaned}`);
+    console.log(`📱 Format nomor untuk Fonte API: ${number} -> ${cleaned}`);
     return cleaned;
   }
 
@@ -40,51 +42,55 @@ class WhatsAppService {
     try {
       const formattedNumber = this.formatPhoneNumber(data.number);
       
-      console.log(`📤 Mengirim pesan WhatsApp ke ${formattedNumber}`);
+      console.log(`📤 Mengirim pesan WhatsApp via Fonte API ke ${formattedNumber}`);
       console.log(`💬 Pesan: ${data.message.substring(0, 100)}...`);
 
-      const response = await fetch(`${this.baseURL}/send-message`, {
+      const payload = {
+        phone: formattedNumber,
+        message: data.message
+      };
+
+      const response = await fetch(`${this.baseURL}/messages/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
         },
-        body: JSON.stringify({
-          number: formattedNumber,
-          message: data.message
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`❌ HTTP Error ${response.status}:`, errorText);
+        console.error(`❌ Fonte API Error ${response.status}:`, errorText);
         
         // Jika server tidak tersedia, return simulasi berhasil untuk testing
         if (response.status >= 500 || !response.status) {
-          console.log(`⚠️ Server tidak tersedia, simulasi pengiriman berhasil`);
+          console.log(`⚠️ Fonte API tidak tersedia, simulasi pengiriman berhasil`);
           return {
             success: true,
-            message: 'Pesan berhasil dikirim (simulasi - server tidak tersedia)',
+            message: 'Pesan berhasil dikirim (simulasi - Fonte API tidak tersedia)',
             data: { 
               simulated: true, 
               targetNumber: formattedNumber,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              provider: 'Fonte API'
             }
           };
         }
         
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        throw new Error(`Fonte API error! status: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log(`✅ Pesan berhasil dikirim ke ${formattedNumber}`);
+      console.log(`✅ Pesan berhasil dikirim via Fonte API ke ${formattedNumber}`);
       
       return {
         success: true,
-        message: 'Pesan berhasil dikirim',
+        message: 'Pesan berhasil dikirim via Fonte API',
         data: result
       };
     } catch (error) {
-      console.error('❌ Error sending WhatsApp message:', error);
+      console.error('❌ Error sending WhatsApp message via Fonte:', error);
       
       // Untuk development/testing, kita simulasikan pengiriman berhasil
       if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -95,14 +101,15 @@ class WhatsAppService {
           data: { 
             simulated: true, 
             targetNumber: this.formatPhoneNumber(data.number),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            provider: 'Fonte API'
           }
         };
       }
 
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Gagal mengirim pesan'
+        message: error instanceof Error ? error.message : 'Gagal mengirim pesan via Fonte API'
       };
     }
   }
@@ -172,12 +179,13 @@ Wassalamualaikum Wr. Wb.`;
 
   async testConnection(): Promise<WhatsAppResponse> {
     try {
-      console.log(`🔍 Testing connection to ${this.baseURL}/status`);
+      console.log(`🔍 Testing connection to Fonte API: ${this.baseURL}/status`);
       
       const response = await fetch(`${this.baseURL}/status`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
         },
       });
 
@@ -186,25 +194,27 @@ Wassalamualaikum Wr. Wb.`;
       }
 
       const result = await response.json();
-      console.log(`✅ Koneksi berhasil:`, result);
+      console.log(`✅ Koneksi Fonte API berhasil:`, result);
       
       return {
         success: true,
-        message: 'Koneksi Baileys API berhasil',
+        message: 'Koneksi Fonte API berhasil',
         data: result
       };
     } catch (error) {
-      console.error('❌ Error testing Baileys connection:', error);
+      console.error('❌ Error testing Fonte API connection:', error);
       
       // Untuk development, return success simulation
-      console.log(`⚠️ Simulasi koneksi berhasil untuk testing`);
+      console.log(`⚠️ Simulasi koneksi Fonte API berhasil untuk testing`);
       return {
         success: true,
-        message: 'Koneksi berhasil (simulasi - server tidak tersedia)',
+        message: 'Koneksi berhasil (simulasi - Fonte API tidak tersedia)',
         data: { 
           simulated: true, 
           status: 'connected',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          provider: 'Fonte API',
+          apiKey: this.apiKey.substring(0, 8) + '...'
         }
       };
     }
