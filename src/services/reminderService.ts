@@ -19,7 +19,7 @@ class ReminderService {
       activityDate, 
       activityTime, 
       location, 
-      targetNumbers = ['082115575219'] // Default ke nomor yang ditentukan
+      targetNumbers = ['6288137216822'] // Updated to your number
     } = schedule;
 
     console.log(`📋 Menjadwalkan pengingat untuk kegiatan: ${activityName}`);

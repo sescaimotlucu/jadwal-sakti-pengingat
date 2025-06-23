@@ -109,7 +109,7 @@ const Dashboard = () => {
       toast.success(result.message);
       setActivities(prev => [...prev, result.data!]);
       
-      // Jadwalkan pengingat otomatis dengan nomor target yang ditentukan
+      // Jadwalkan pengingat otomatis dengan nomor yang baru
       console.log('🔔 Menjadwalkan pengingat untuk kegiatan:', result.data.nama_kegiatan);
       await reminderService.scheduleReminders({
         activityId: result.data.id,
@@ -117,10 +117,10 @@ const Dashboard = () => {
         activityDate: result.data.tanggal,
         activityTime: result.data.waktu,
         location: result.data.lokasi,
-        targetNumbers: ['082115575219'] // Pastikan menggunakan nomor yang benar
+        targetNumbers: ['6288137216822'] // Updated to your phone number
       });
       
-      toast.success('✅ Pengingat otomatis telah dijadwalkan ke nomor 082115575219!');
+      toast.success('✅ Pengingat otomatis telah dijadwalkan ke nomor +62 881-3721-682!');
       
       // Reset form
       setNewActivity({

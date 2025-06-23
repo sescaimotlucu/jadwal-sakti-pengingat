@@ -1,4 +1,3 @@
-
 interface ScheduledJob {
   id: string;
   activityId: number;
@@ -20,7 +19,7 @@ class CronJobService {
     activityDate: string,
     activityTime: string,
     location: string,
-    targetNumbers: string[] = ['082115575219'] // Default ke nomor yang ditentukan
+    targetNumbers: string[] = ['6288137216822'] // Updated to your number
   ): void {
     const activityDateTime = new Date(`${activityDate}T${activityTime}`);
     

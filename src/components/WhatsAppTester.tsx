@@ -15,7 +15,7 @@ interface MessageTemplate {
 }
 
 const WhatsAppTester = () => {
-  const [phoneNumber, setPhoneNumber] = useState('6282115575219');
+  const [phoneNumber, setPhoneNumber] = useState('6288137216822'); // Updated to your number
   const [message, setMessage] = useState('');
   const [templates, setTemplates] = useState<MessageTemplate[]>([
     {
@@ -104,10 +104,10 @@ const WhatsAppTester = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
-            WhatsApp Baileys Tester
+            WhatsApp Fonte API Tester
           </CardTitle>
           <CardDescription>
-            Test koneksi dan kirim pesan via Baileys API
+            Test koneksi dan kirim pesan via Fonte API
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,7 +118,7 @@ const WhatsAppTester = () => {
             className="w-full"
           >
             <Wifi className="w-4 h-4 mr-2" />
-            {isLoading ? 'Testing...' : 'Test Koneksi'}
+            {isLoading ? 'Testing...' : 'Test Koneksi Fonte API'}
           </Button>
           
           <div className="space-y-3">
@@ -168,14 +168,14 @@ const WhatsAppTester = () => {
             )}
           </div>
 
-          <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="font-semibold mb-2">Setup Baileys Server:</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Clone repo: github.com/WhiskeySockets/Baileys</li>
-              <li>Install dependencies: npm install</li>
-              <li>Jalankan server di port 5000</li>
-              <li>Scan QR code untuk login WhatsApp</li>
-            </ol>
+          <div className="text-xs text-gray-500 mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="font-semibold mb-2 text-blue-800">Setup Fonte API:</p>
+            <ul className="list-disc list-inside space-y-1 text-blue-700">
+              <li>API Key sudah dikonfigurasi</li>
+              <li>Nomor default: +62 881-3721-682</li>
+              <li>Endpoint: api.fonteapi.com/v1</li>
+              <li>Siap untuk testing!</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
