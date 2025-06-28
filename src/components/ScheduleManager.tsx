@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { toast } from 'sonner';
 import { Calendar, Clock, MapPin, Edit, Trash2, Plus, Save, X } from 'lucide-react';
+import { confirmationService } from '../services/confirmationService';
+import { reminderService } from '../services/reminderService';
 
 interface Activity {
   id: string;
@@ -46,6 +47,7 @@ const ScheduleManager = () => {
 
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Activity>>({
     name: '',
     type: 'Posyandu',
@@ -63,6 +65,8 @@ const ScheduleManager = () => {
     'Rapat RT',
     'Lainnya'
   ];
+
+  const targetPhoneNumber = '6288137216822'; // Nomor WhatsApp tujuan
 
   const resetForm = () => {
     setFormData({
@@ -93,7 +97,7 @@ const ScheduleManager = () => {
     return 'past';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.date || !formData.time || !formData.location) {
@@ -101,40 +105,82 @@ const ScheduleManager = () => {
       return;
     }
 
-    const autoMessage = generateAutoMessage(formData.type!, formData.date!, formData.time!, formData.location!);
-    const finalMessage = formData.message || autoMessage;
+    setIsSubmitting(true);
 
-    if (isEditing) {
-      // Update existing activity
-      setActivities(prev => prev.map(activity => 
-        activity.id === isEditing 
-          ? {
-              ...activity,
-              ...formData,
-              message: finalMessage,
-              status: getActivityStatus(formData.date!)
-            } as Activity
-          : activity
-      ));
-      toast.success('Kegiatan berhasil diperbarui');
-    } else {
-      // Add new activity
-      const newActivity: Activity = {
-        id: Date.now().toString(),
-        name: formData.name!,
-        type: formData.type!,
-        date: formData.date!,
-        time: formData.time!,
-        location: formData.location!,
-        message: finalMessage,
-        status: getActivityStatus(formData.date!)
-      };
-      
-      setActivities(prev => [...prev, newActivity]);
-      toast.success('Kegiatan baru berhasil ditambahkan');
+    try {
+      const autoMessage = generateAutoMessage(formData.type!, formData.date!, formData.time!, formData.location!);
+      const finalMessage = formData.message || autoMessage;
+
+      if (isEditing) {
+        // Update existing activity
+        setActivities(prev => prev.map(activity => 
+          activity.id === isEditing 
+            ? {
+                ...activity,
+                ...formData,
+                message: finalMessage,
+                status: getActivityStatus(formData.date!)
+              } as Activity
+            : activity
+        ));
+        toast.success('Kegiatan berhasil diperbarui');
+      } else {
+        // Add new activity
+        const newActivity: Activity = {
+          id: Date.now().toString(),
+          name: formData.name!,
+          type: formData.type!,
+          date: formData.date!,
+          time: formData.time!,
+          location: formData.location!,
+          message: finalMessage,
+          status: getActivityStatus(formData.date!)
+        };
+        
+        setActivities(prev => [...prev, newActivity]);
+        
+        // Kirim konfirmasi WhatsApp langsung
+        const confirmationResult = await confirmationService.sendScheduleConfirmation(
+          targetPhoneNumber,
+          {
+            activityName: formData.name!,
+            activityDate: formData.date!,
+            activityTime: formData.time!,
+            location: formData.location!
+          }
+        );
+
+        if (confirmationResult.success) {
+          toast.success('Kegiatan berhasil ditambahkan dan konfirmasi dikirim via WhatsApp!');
+        } else {
+          toast.success('Kegiatan berhasil ditambahkan');
+          toast.error(`Gagal mengirim konfirmasi WhatsApp: ${confirmationResult.message}`);
+        }
+
+        // Jadwalkan pengingat otomatis
+        try {
+          await reminderService.scheduleReminders({
+            activityId: parseInt(newActivity.id),
+            activityName: formData.name!,
+            activityDate: formData.date!,
+            activityTime: formData.time!,
+            location: formData.location!,
+            targetNumbers: [targetPhoneNumber]
+          });
+          
+          console.log('✅ Pengingat otomatis berhasil dijadwalkan');
+        } catch (error) {
+          console.error('❌ Gagal menjadwalkan pengingat:', error);
+        }
+      }
+
+      resetForm();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Terjadi kesalahan saat menyimpan kegiatan');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetForm();
   };
 
   const handleEdit = (activity: Activity) => {
@@ -180,7 +226,7 @@ const ScheduleManager = () => {
             Manajemen Jadwal Kegiatan
           </CardTitle>
           <CardDescription>
-            Kelola jadwal kegiatan desa dan pengingat otomatis
+            Kelola jadwal kegiatan desa dengan konfirmasi dan pengingat otomatis via WhatsApp
           </CardDescription>
         </CardHeader>
       </Card>
@@ -191,6 +237,7 @@ const ScheduleManager = () => {
         <Button 
           onClick={() => setShowAddForm(true)}
           className="flex items-center gap-2"
+          disabled={isSubmitting}
         >
           <Plus className="w-4 h-4" />
           Tambah Kegiatan
@@ -203,10 +250,13 @@ const ScheduleManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               {isEditing ? 'Edit Kegiatan' : 'Tambah Kegiatan Baru'}
-              <Button variant="ghost" size="sm" onClick={resetForm}>
+              <Button variant="ghost" size="sm" onClick={resetForm} disabled={isSubmitting}>
                 <X className="w-4 h-4" />
               </Button>
             </CardTitle>
+            <CardDescription>
+              {!isEditing && 'Konfirmasi akan dikirim langsung ke +62 881-3721-682'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -218,6 +268,7 @@ const ScheduleManager = () => {
                     className="w-full p-2 border rounded-md"
                     value={formData.type}
                     onChange={(e) => handleInputChange('type', e.target.value)}
+                    disabled={isSubmitting}
                   >
                     {activityTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
@@ -233,6 +284,7 @@ const ScheduleManager = () => {
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       placeholder="Masukkan nama kegiatan"
+                      disabled={isSubmitting}
                       required
                     />
                   </div>
@@ -245,6 +297,7 @@ const ScheduleManager = () => {
                     type="date"
                     value={formData.date}
                     onChange={(e) => handleInputChange('date', e.target.value)}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -256,6 +309,7 @@ const ScheduleManager = () => {
                     type="time"
                     value={formData.time}
                     onChange={(e) => handleInputChange('time', e.target.value)}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -268,6 +322,7 @@ const ScheduleManager = () => {
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="Masukkan lokasi kegiatan"
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -279,6 +334,7 @@ const ScheduleManager = () => {
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   placeholder="Kosongkan untuk menggunakan pesan otomatis"
+                  disabled={isSubmitting}
                   rows={3}
                 />
                 <p className="text-xs text-gray-500">
@@ -287,11 +343,25 @@ const ScheduleManager = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" className="flex items-center gap-2">
+                <Button 
+                  type="submit" 
+                  className="flex items-center gap-2"
+                  disabled={isSubmitting}
+                >
                   <Save className="w-4 h-4" />
-                  {isEditing ? 'Perbarui' : 'Simpan'} Kegiatan
+                  {isSubmitting 
+                    ? 'Menyimpan...' 
+                    : isEditing 
+                      ? 'Perbarui Kegiatan' 
+                      : 'Simpan & Kirim Konfirmasi'
+                  }
                 </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={resetForm}
+                  disabled={isSubmitting}
+                >
                   Batal
                 </Button>
               </div>
@@ -338,6 +408,7 @@ const ScheduleManager = () => {
                         size="sm"
                         onClick={() => handleEdit(activity)}
                         className="flex items-center gap-1"
+                        disabled={isSubmitting}
                       >
                         <Edit className="w-3 h-3" />
                         Edit
@@ -347,6 +418,7 @@ const ScheduleManager = () => {
                         size="sm"
                         onClick={() => handleDelete(activity.id)}
                         className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                        disabled={isSubmitting}
                       >
                         <Trash2 className="w-3 h-3" />
                         Hapus
@@ -366,16 +438,15 @@ const ScheduleManager = () => {
         </CardContent>
       </Card>
 
-      {/* Database Notice */}
-      <Card className="border-yellow-200 bg-yellow-50">
+      {/* Status Information */}
+      <Card className="border-green-200 bg-green-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="text-yellow-600 text-xl">⚠️</div>
+            <div className="text-green-600 text-xl">✅</div>
             <div>
-              <h4 className="font-semibold text-yellow-800 mb-1">Koneksi Database</h4>
-              <p className="text-sm text-yellow-700">
-                Untuk menyimpan data ke database MySQL, Anda perlu menghubungkan proyek ini ke Supabase. 
-                Klik tombol hijau Supabase di bagian kanan atas untuk mengaktifkan integrasi database.
+              <h4 className="font-semibold text-green-800 mb-1">WhatsApp Integration Active</h4>
+              <p className="text-sm text-green-700">
+                Sistem akan mengirim konfirmasi langsung dan menjadwalkan pengingat otomatis (H-2, H-1, Hari-H) ke nomor +62 881-3721-682 setiap kali kegiatan baru ditambahkan.
               </p>
             </div>
           </div>

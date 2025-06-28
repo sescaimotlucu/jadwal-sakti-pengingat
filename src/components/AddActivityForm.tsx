@@ -23,6 +23,7 @@ interface AddActivityFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   activityTypes: string[];
+  isSubmitting?: boolean;
 }
 
 const AddActivityForm = ({ 
@@ -31,7 +32,8 @@ const AddActivityForm = ({
   onActivityChange, 
   onSubmit, 
   onCancel, 
-  activityTypes 
+  activityTypes,
+  isSubmitting = false
 }: AddActivityFormProps) => {
   if (!showForm) return null;
 
@@ -44,7 +46,7 @@ const AddActivityForm = ({
       <CardHeader>
         <CardTitle>Tambah Kegiatan Baru</CardTitle>
         <CardDescription>
-          Pengingat otomatis akan dijadwalkan ke nomor 082115575219
+          Konfirmasi dan pengingat otomatis akan dikirim ke nomor +62 881-3721-682
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -57,6 +59,7 @@ const AddActivityForm = ({
                 className="w-full p-2 border rounded-md"
                 value={newActivity.jenis_kegiatan}
                 onChange={(e) => handleInputChange('jenis_kegiatan', e.target.value)}
+                disabled={isSubmitting}
               >
                 {activityTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
@@ -71,6 +74,7 @@ const AddActivityForm = ({
                 value={newActivity.nama_kegiatan}
                 onChange={(e) => handleInputChange('nama_kegiatan', e.target.value)}
                 placeholder="Masukkan nama kegiatan"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -82,6 +86,7 @@ const AddActivityForm = ({
                 type="date"
                 value={newActivity.tanggal}
                 onChange={(e) => handleInputChange('tanggal', e.target.value)}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -93,6 +98,7 @@ const AddActivityForm = ({
                 type="time"
                 value={newActivity.waktu}
                 onChange={(e) => handleInputChange('waktu', e.target.value)}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -105,19 +111,25 @@ const AddActivityForm = ({
               value={newActivity.lokasi}
               onChange={(e) => handleInputChange('lokasi', e.target.value)}
               placeholder="Masukkan lokasi kegiatan"
+              disabled={isSubmitting}
               required
             />
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" className="flex items-center gap-2">
+            <Button 
+              type="submit" 
+              className="flex items-center gap-2"
+              disabled={isSubmitting}
+            >
               <Plus className="w-4 h-4" />
-              Simpan & Jadwalkan Pengingat
+              {isSubmitting ? 'Menyimpan...' : 'Simpan & Kirim Konfirmasi'}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
+              disabled={isSubmitting}
             >
               Batal
             </Button>
