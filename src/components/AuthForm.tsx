@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ interface AuthFormProps {
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,17 +32,34 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
 
     try {
       if (isLogin) {
+        console.log('🔐 Attempting login with:', { email: formData.email });
+        
         const result = await authService.login({
           email: formData.email,
           password: formData.password
         });
 
+        console.log('🔐 Login result:', result);
+
         if (result.success) {
           toast.success(result.message);
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 1000);
+          
+          // Tunggu sebentar untuk memastikan localStorage ter-update
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Verifikasi authentication sebelum redirect
+          const isAuth = authService.isAuthenticated();
+          console.log('✅ Authentication verified:', isAuth);
+          
+          if (isAuth) {
+            console.log('🚀 Redirecting to dashboard...');
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.error('❌ Authentication verification failed');
+            toast.error('Terjadi kesalahan saat login. Silakan coba lagi.');
+          }
         } else {
+          console.error('❌ Login failed:', result.message);
           toast.error(result.message);
         }
       } else {
@@ -56,6 +75,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
         }
       }
     } catch (error) {
+      console.error('❌ Auth error:', error);
       toast.error('Terjadi kesalahan sistem');
     } finally {
       setIsLoading(false);

@@ -15,12 +15,14 @@ const queryClient = new QueryClient();
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = authService.isAuthenticated();
+  console.log('🔒 ProtectedRoute check:', isAuthenticated);
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 // Public Route Component (redirect to dashboard if already logged in)
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = authService.isAuthenticated();
+  console.log('🔓 PublicRoute check:', isAuthenticated);
   return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
 

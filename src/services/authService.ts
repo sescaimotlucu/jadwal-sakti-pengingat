@@ -58,6 +58,8 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
+      console.log('🔐 Login attempt for:', credentials.email);
+      
       // Simulate API call - replace with actual backend
       if (credentials.email === 'admin@desa.com' && credentials.password === 'admin123') {
         const user: User = {
@@ -75,7 +77,14 @@ class AuthService {
           localStorage.setItem('currentUser', JSON.stringify(user));
           localStorage.setItem('authToken', token);
           this.currentUser = user;
+          
+          console.log('✅ User data saved to localStorage');
           console.log('✅ User logged in successfully:', user.nama);
+          
+          // Verify the data was saved correctly
+          const verification = this.isAuthenticated();
+          console.log('✅ Authentication verification:', verification);
+          
         } catch (storageError) {
           console.error('❌ Error saving to localStorage:', storageError);
           return {
@@ -91,6 +100,7 @@ class AuthService {
           token
         };
       } else {
+        console.log('❌ Invalid credentials provided');
         return {
           success: false,
           message: 'Email atau password salah!'
@@ -143,10 +153,20 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const user = this.getCurrentUser();
+    // Force fresh check from localStorage
+    this.loadUserFromStorage();
+    
+    const user = this.currentUser;
     const token = localStorage.getItem('authToken');
     const isAuth = user !== null && token !== null;
-    console.log('🔐 Authentication check:', { hasUser: !!user, hasToken: !!token, isAuth });
+    
+    console.log('🔐 Authentication check:', { 
+      hasUser: !!user, 
+      hasToken: !!token, 
+      isAuth,
+      userName: user?.nama || 'N/A'
+    });
+    
     return isAuth;
   }
 
