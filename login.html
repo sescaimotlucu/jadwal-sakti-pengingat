@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistem Manajemen</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h1 class="login-title">Selamat Datang</h1>
+            <p class="login-subtitle">Silakan masuk ke akun Anda</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="login-form" novalidate>
+            <input type="hidden" name="csrf_token" id="csrfToken">
+            
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Email
+                </label>
+                <div class="input-group">
+                    <input 
+                        type="email" 
+                        class="form-control" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Masukkan email Anda"
+                        required
+                        autocomplete="email"
+                    >
+                    <i class="fas fa-envelope input-icon"></i>
+                </div>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <div class="input-group">
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Masukkan password Anda"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <i class="fas fa-eye input-icon" id="togglePassword" style="cursor: pointer;"></i>
+                </div>
+                <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
+                    <label class="form-check-label" for="rememberMe">
+                        Ingat saya
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Masuk
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p class="footer-text">Belum punya akun?</p>
+            <a href="#" class="footer-link">Daftar sekarang</a>
+            <div class="mt-3">
+                <small class="text-muted">
+                    © 2024 Sistem Manajemen. All rights reserved.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const togglePassword = document.getElementById('togglePassword');
+        const alertContainer = document.getElementById('alertContainer');
+        const csrfToken = document.getElementById('csrfToken');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get CSRF token
+            fetchCSRFToken();
+            
+            // Add event listeners
+            setupEventListeners();
+            
+            // Check if already logged in
+            checkLoginStatus();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Form submission
+            loginForm.addEventListener('submit', handleLogin);
+            
+            // Password toggle
+            togglePassword.addEventListener('click', togglePasswordVisibility);
+            
+            // Real-time validation
+            emailInput.addEventListener('input', validateEmail);
+            passwordInput.addEventListener('input', validatePassword);
+            
+            // Enter key handling
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !loginBtn.disabled) {
+                    handleLogin(e);
+                }
+            });
+        }
+
+        // Fetch CSRF token
+        async function fetchCSRFToken() {
+            try {
+                const response = await fetch('get_csrf_token.php');
+                const data = await response.json();
+                if (data.success) {
+                    csrfToken.value = data.token;
+                }
+            } catch (error) {
+                console.error('Error fetching CSRF token:', error);
+            }
+        }
+
+        // Check login status
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('check_login.php');
+                const data = await response.json();
+                if (data.logged_in) {
+                    window.location.href = 'dashboard.php';
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+            }
+        }
+
+        // Handle login form submission
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Show loading state
+            setLoadingState(true);
+            
+            try {
+                const formData = new FormData(loginForm);
+                
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('success', data.message);
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.php';
+                    }, 1500);
+                } else {
+                    showAlert('danger', data.message);
+                    setLoadingState(false);
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('danger', 'Terjadi kesalahan sistem. Silakan coba lagi.');
+                setLoadingState(false);
+            }
+        }
+
+        // Validate form
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate email
+            if (!validateEmail()) {
+                isValid = false;
+            }
+            
+            // Validate password
+            if (!validatePassword()) {
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Validate email
+        function validateEmail() {
+            const email = emailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!email) {
+                setFieldError(emailInput, 'Email harus diisi');
+                return false;
+            } else if (!emailRegex.test(email)) {
+                setFieldError(emailInput, 'Format email tidak valid');
+                return false;
+            } else {
+                setFieldSuccess(emailInput);
+                return true;
+            }
+        }
+
+        // Validate password
+        function validatePassword() {
+            const password = passwordInput.value;
+            
+            if (!password) {
+                setFieldError(passwordInput, 'Password harus diisi');
+                return false;
+            } else if (password.length < 6) {
+                setFieldError(passwordInput, 'Password minimal 6 karakter');
+                return false;
+            } else {
+                setFieldSuccess(passwordInput);
+                return true;
+            }
+        }
+
+        // Set field error
+        function setFieldError(field, message) {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+            const feedback = field.parentNode.parentNode.querySelector('.invalid-feedback');
+            if (feedback) {
+                feedback.textContent = message;
+            }
+        }
+
+        // Set field success
+        function setFieldSuccess(field) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+        }
+
+        // Toggle password visibility
+        function togglePasswordVisibility() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle icon
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        }
+
+        // Set loading state
+        function setLoadingState(loading) {
+            if (loading) {
+                loginBtn.disabled = true;
+                loginBtn.classList.add('btn-loading');
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+            } else {
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('btn-loading');
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Masuk';
+            }
+        }
+
+        // Show alert
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'danger' ? 'alert-danger' : 'alert-info';
+            
+            const alertHtml = `
+                <div class="alert ${alertClass} fade-in" role="alert">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                                   type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
+                    ${message}
+                </div>
+            `;
+            
+            alertContainer.innerHTML = alertHtml;
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Demo credentials helper
+        function fillDemoCredentials() {
+            emailInput.value = 'admin@example.com';
+            passwordInput.value = 'admin123';
+            validateEmail();
+            validatePassword();
+        }
+
+        // Add demo button (for testing)
+        document.addEventListener('DOMContentLoaded', function() {
+            const footer = document.querySelector('.login-footer');
+            const demoBtn = document.createElement('button');
+            demoBtn.type = 'button';
+            demoBtn.className = 'btn btn-outline-secondary btn-sm mt-2';
+            demoBtn.innerHTML = '<i class="fas fa-user me-1"></i>Demo Login';
+            demoBtn.onclick = fillDemoCredentials;
+            footer.appendChild(demoBtn);
+        });
+    </script>
+</body>
+</html>
