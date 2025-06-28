@@ -6,8 +6,10 @@ import { toast } from 'sonner';
 import DashboardHeader from './DashboardHeader';
 import DashboardTabs from './DashboardTabs';
 import { NewActivity } from './AddActivityForm';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardContainer = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
@@ -37,52 +39,45 @@ const DashboardContainer = () => {
     'Lainnya'
   ];
 
-  // Handle window resize and authentication check
+  // Authentication check - simplified and more reliable
   useEffect(() => {
     const checkAuthAndLoadData = async () => {
       try {
+        console.log('🔍 DashboardContainer: Starting authentication check...');
+        
+        // Force a fresh check from localStorage
+        authService.refreshUserData();
+        
         const currentUser = authService.getCurrentUser();
         const isAuthenticated = authService.isAuthenticated();
         
-        console.log('🔍 Checking authentication:', { currentUser, isAuthenticated });
+        console.log('🔍 DashboardContainer auth state:', { 
+          currentUser: currentUser?.nama || 'null', 
+          isAuthenticated,
+          hasToken: !!localStorage.getItem('authToken')
+        });
         
         if (!currentUser || !isAuthenticated) {
-          console.log('❌ User not authenticated, redirecting to login');
+          console.log('❌ DashboardContainer: User not authenticated, redirecting...');
           authService.logout(); // Clear any corrupted data
-          window.location.href = '/login';
+          navigate('/login', { replace: true });
           return;
         }
         
+        console.log('✅ DashboardContainer: User authenticated successfully');
         setUser(currentUser);
         await loadActivities();
       } catch (error) {
-        console.error('❌ Error during auth check:', error);
+        console.error('❌ DashboardContainer: Error during auth check:', error);
         authService.logout();
-        window.location.href = '/login';
+        navigate('/login', { replace: true });
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuthAndLoadData();
-
-    // Handle window resize events
-    const handleResize = () => {
-      // Re-check authentication on resize to prevent layout issues
-      const currentUser = authService.getCurrentUser();
-      if (!currentUser) {
-        console.log('❌ User lost during resize, redirecting');
-        window.location.href = '/login';
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  }, []); // Remove dependency on navigate to prevent re-runs
 
   useEffect(() => {
     applyFilters();
@@ -124,9 +119,10 @@ const DashboardContainer = () => {
   };
 
   const handleLogout = () => {
+    console.log('🚪 DashboardContainer: Logging out user');
     authService.logout();
     toast.success('Berhasil logout');
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   const handleAddActivity = async (e: React.FormEvent) => {
@@ -217,6 +213,25 @@ const DashboardContainer = () => {
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Memuat dashboard...</p>
+          <p className="text-sm text-gray-500 mt-2">Memeriksa autentikasi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If we reach here, user should be authenticated
+  if (!user) {
+    console.log('❌ DashboardContainer: No user data available after loading');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 font-poppins flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Terjadi kesalahan autentikasi</p>
+          <button 
+            onClick={() => navigate('/login', { replace: true })}
+            className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Kembali ke Login
+          </button>
         </div>
       </div>
     );

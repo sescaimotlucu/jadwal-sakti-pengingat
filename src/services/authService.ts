@@ -1,4 +1,3 @@
-
 interface User {
   id: number;
   nama: string;
@@ -38,14 +37,18 @@ class AuthService {
         // Validate user object structure
         if (user.id && user.nama && user.email) {
           this.currentUser = user;
-          console.log('✅ User loaded from storage:', user.nama);
+          console.log('✅ AuthService: User loaded from storage:', user.nama);
         } else {
-          console.log('❌ Invalid user data in storage, clearing...');
+          console.log('❌ AuthService: Invalid user data in storage, clearing...');
           this.clearStorage();
         }
+      } else if (savedUser || savedToken) {
+        // If only one exists, clear both for consistency
+        console.log('⚠️ AuthService: Inconsistent storage state, clearing...');
+        this.clearStorage();
       }
     } catch (error) {
-      console.error('❌ Error loading user from storage:', error);
+      console.error('❌ AuthService: Error loading user from storage:', error);
       this.clearStorage();
     }
   }
@@ -58,7 +61,7 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      console.log('🔐 Login attempt for:', credentials.email);
+      console.log('🔐 AuthService: Login attempt for:', credentials.email);
       
       // Simulate API call - replace with actual backend
       if (credentials.email === 'admin@desa.com' && credentials.password === 'admin123') {
@@ -74,19 +77,20 @@ class AuthService {
         
         // Save to localStorage with error handling
         try {
-          localStorage.setItem('currentUser', JSON.stringify(user));
+          const userJson = JSON.stringify(user);
+          localStorage.setItem('currentUser', userJson);
           localStorage.setItem('authToken', token);
           this.currentUser = user;
           
-          console.log('✅ User data saved to localStorage');
-          console.log('✅ User logged in successfully:', user.nama);
+          console.log('✅ AuthService: User data saved to localStorage');
+          console.log('✅ AuthService: User logged in successfully:', user.nama);
           
-          // Verify the data was saved correctly
+          // Immediate verification
           const verification = this.isAuthenticated();
-          console.log('✅ Authentication verification:', verification);
+          console.log('✅ AuthService: Authentication verification:', verification);
           
         } catch (storageError) {
-          console.error('❌ Error saving to localStorage:', storageError);
+          console.error('❌ AuthService: Error saving to localStorage:', storageError);
           return {
             success: false,
             message: 'Gagal menyimpan data login'
@@ -100,14 +104,14 @@ class AuthService {
           token
         };
       } else {
-        console.log('❌ Invalid credentials provided');
+        console.log('❌ AuthService: Invalid credentials provided');
         return {
           success: false,
           message: 'Email atau password salah!'
         };
       }
     } catch (error) {
-      console.error('❌ Login error:', error);
+      console.error('❌ AuthService: Login error:', error);
       return {
         success: false,
         message: 'Terjadi kesalahan saat login'
@@ -140,27 +144,26 @@ class AuthService {
   }
 
   logout(): void {
-    console.log('🚪 Logging out user');
+    console.log('🚪 AuthService: Logging out user');
     this.clearStorage();
   }
 
   getCurrentUser(): User | null {
-    // Always check localStorage for the most current data
-    if (!this.currentUser) {
-      this.loadUserFromStorage();
-    }
+    // Always return the current cached user, don't reload from storage
     return this.currentUser;
   }
 
   isAuthenticated(): boolean {
-    // Force fresh check from localStorage
-    this.loadUserFromStorage();
+    // Only reload if we don't have a current user
+    if (!this.currentUser) {
+      this.loadUserFromStorage();
+    }
     
     const user = this.currentUser;
     const token = localStorage.getItem('authToken');
     const isAuth = user !== null && token !== null;
     
-    console.log('🔐 Authentication check:', { 
+    console.log('🔐 AuthService: Authentication check:', { 
       hasUser: !!user, 
       hasToken: !!token, 
       isAuth,
@@ -176,6 +179,7 @@ class AuthService {
 
   // Method to refresh user data if needed
   refreshUserData(): void {
+    console.log('🔄 AuthService: Refreshing user data from storage');
     this.loadUserFromStorage();
   }
 }

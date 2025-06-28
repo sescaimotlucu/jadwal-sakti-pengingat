@@ -32,34 +32,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
 
     try {
       if (isLogin) {
-        console.log('🔐 Attempting login with:', { email: formData.email });
+        console.log('🔐 AuthForm: Attempting login with:', { email: formData.email });
         
         const result = await authService.login({
           email: formData.email,
           password: formData.password
         });
 
-        console.log('🔐 Login result:', result);
+        console.log('🔐 AuthForm: Login result:', result);
 
         if (result.success) {
           toast.success(result.message);
           
-          // Tunggu sebentar untuk memastikan localStorage ter-update
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Verifikasi authentication sebelum redirect
+          // Immediate verification without delay
           const isAuth = authService.isAuthenticated();
-          console.log('✅ Authentication verified:', isAuth);
+          console.log('✅ AuthForm: Authentication verified immediately:', isAuth);
           
           if (isAuth) {
-            console.log('🚀 Redirecting to dashboard...');
+            console.log('🚀 AuthForm: Redirecting to dashboard...');
+            // Use replace to prevent back navigation issues
             navigate('/dashboard', { replace: true });
           } else {
-            console.error('❌ Authentication verification failed');
+            console.error('❌ AuthForm: Authentication verification failed');
             toast.error('Terjadi kesalahan saat login. Silakan coba lagi.');
           }
         } else {
-          console.error('❌ Login failed:', result.message);
+          console.error('❌ AuthForm: Login failed:', result.message);
           toast.error(result.message);
         }
       } else {
@@ -75,7 +73,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Auth error:', error);
+      console.error('❌ AuthForm: Auth error:', error);
       toast.error('Terjadi kesalahan sistem');
     } finally {
       setIsLoading(false);
