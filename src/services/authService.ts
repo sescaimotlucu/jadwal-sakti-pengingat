@@ -25,12 +25,35 @@ class AuthService {
 
   constructor() {
     // Load user from localStorage on init
-    const savedUser = localStorage.getItem('currentUser');
-    const savedToken = localStorage.getItem('authToken');
-    
-    if (savedUser && savedToken) {
-      this.currentUser = JSON.parse(savedUser);
+    this.loadUserFromStorage();
+  }
+
+  private loadUserFromStorage(): void {
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      const savedToken = localStorage.getItem('authToken');
+      
+      if (savedUser && savedToken) {
+        const user = JSON.parse(savedUser);
+        // Validate user object structure
+        if (user.id && user.nama && user.email) {
+          this.currentUser = user;
+          console.log('✅ User loaded from storage:', user.nama);
+        } else {
+          console.log('❌ Invalid user data in storage, clearing...');
+          this.clearStorage();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error loading user from storage:', error);
+      this.clearStorage();
     }
+  }
+
+  private clearStorage(): void {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authToken');
+    this.currentUser = null;
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -47,10 +70,19 @@ class AuthService {
         
         const token = 'mock-jwt-token-' + Date.now();
         
-        // Save to localStorage
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        localStorage.setItem('authToken', token);
-        this.currentUser = user;
+        // Save to localStorage with error handling
+        try {
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          localStorage.setItem('authToken', token);
+          this.currentUser = user;
+          console.log('✅ User logged in successfully:', user.nama);
+        } catch (storageError) {
+          console.error('❌ Error saving to localStorage:', storageError);
+          return {
+            success: false,
+            message: 'Gagal menyimpan data login'
+          };
+        }
         
         return {
           success: true,
@@ -65,6 +97,7 @@ class AuthService {
         };
       }
     } catch (error) {
+      console.error('❌ Login error:', error);
       return {
         success: false,
         message: 'Terjadi kesalahan saat login'
@@ -97,21 +130,33 @@ class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
-    this.currentUser = null;
+    console.log('🚪 Logging out user');
+    this.clearStorage();
   }
 
   getCurrentUser(): User | null {
+    // Always check localStorage for the most current data
+    if (!this.currentUser) {
+      this.loadUserFromStorage();
+    }
     return this.currentUser;
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser !== null && localStorage.getItem('authToken') !== null;
+    const user = this.getCurrentUser();
+    const token = localStorage.getItem('authToken');
+    const isAuth = user !== null && token !== null;
+    console.log('🔐 Authentication check:', { hasUser: !!user, hasToken: !!token, isAuth });
+    return isAuth;
   }
 
   getToken(): string | null {
     return localStorage.getItem('authToken');
+  }
+
+  // Method to refresh user data if needed
+  refreshUserData(): void {
+    this.loadUserFromStorage();
   }
 }
 

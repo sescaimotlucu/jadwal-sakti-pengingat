@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { authService, User } from '../services/authService';
 import { databaseService, Activity } from '../services/databaseService';
@@ -12,6 +11,7 @@ const DashboardContainer = () => {
   const [user, setUser] = useState<User | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     tanggal: '',
     jenis_kegiatan: '',
@@ -37,14 +37,51 @@ const DashboardContainer = () => {
     'Lainnya'
   ];
 
+  // Handle window resize and authentication check
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (!currentUser) {
-      window.location.href = '/login';
-      return;
-    }
-    setUser(currentUser);
-    loadActivities();
+    const checkAuthAndLoadData = async () => {
+      try {
+        const currentUser = authService.getCurrentUser();
+        const isAuthenticated = authService.isAuthenticated();
+        
+        console.log('🔍 Checking authentication:', { currentUser, isAuthenticated });
+        
+        if (!currentUser || !isAuthenticated) {
+          console.log('❌ User not authenticated, redirecting to login');
+          authService.logout(); // Clear any corrupted data
+          window.location.href = '/login';
+          return;
+        }
+        
+        setUser(currentUser);
+        await loadActivities();
+      } catch (error) {
+        console.error('❌ Error during auth check:', error);
+        authService.logout();
+        window.location.href = '/login';
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthAndLoadData();
+
+    // Handle window resize events
+    const handleResize = () => {
+      // Re-check authentication on resize to prevent layout issues
+      const currentUser = authService.getCurrentUser();
+      if (!currentUser) {
+        console.log('❌ User lost during resize, redirecting');
+        window.location.href = '/login';
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -52,11 +89,16 @@ const DashboardContainer = () => {
   }, [activities, filters]);
 
   const loadActivities = async () => {
-    const result = await databaseService.getActivities();
-    if (result.success && result.data) {
-      setActivities(result.data);
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await databaseService.getActivities();
+      if (result.success && result.data) {
+        setActivities(result.data);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('❌ Error loading activities:', error);
+      toast.error('Gagal memuat data kegiatan');
     }
   };
 
@@ -167,6 +209,18 @@ const DashboardContainer = () => {
       toast.error(result.message);
     }
   };
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 font-poppins flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50 font-poppins">
