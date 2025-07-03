@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -87,10 +86,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-yellow-300 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 via-yellow-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
           <i className="text-2xl text-white">📱</i>
         </div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 to-gray-800 bg-clip-text text-transparent mb-2">
           {isLogin ? 'Selamat Datang' : 'Daftar Akun'}
         </h1>
         <p className="text-gray-600">
@@ -109,14 +108,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
                 Nama Lengkap
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-500" />
                 <Input
                   id="nama"
                   type="text"
                   placeholder="Masukkan nama lengkap"
                   value={formData.nama}
                   onChange={(e) => handleInputChange('nama', e.target.value)}
-                  className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                  className="pl-10 h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -127,14 +126,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
                 Nomor WhatsApp
               </Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-500" />
                 <Input
                   id="nomor_hp"
                   type="tel"
                   placeholder="08xxxxxxxxxx"
                   value={formData.nomor_hp}
                   onChange={(e) => handleInputChange('nomor_hp', e.target.value)}
-                  className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                  className="pl-10 h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -147,14 +146,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
             Email
           </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-500" />
             <Input
               id="email"
               type="email"
               placeholder="nama@email.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="pl-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              className="pl-10 h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               required
               autoFocus={isLogin}
             />
@@ -166,20 +165,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
             Password
           </Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-500" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Masukkan password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className="pl-10 pr-10 h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+              className="pl-10 pr-10 h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-500 hover:text-emerald-600"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -198,7 +197,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
                 placeholder="RT01/RW01"
                 value={formData.rt_rw}
                 onChange={(e) => handleInputChange('rt_rw', e.target.value)}
-                className="h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                className="h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
             </div>
 
@@ -212,7 +211,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
                 placeholder="Alamat lengkap"
                 value={formData.alamat}
                 onChange={(e) => handleInputChange('alamat', e.target.value)}
-                className="h-12 border-gray-300 focus:border-green-400 focus:ring-green-400"
+                className="h-12 border-2 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
             </div>
           </>
@@ -221,7 +220,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-12 bg-gradient-to-r from-green-400 to-yellow-300 hover:from-green-500 hover:to-yellow-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:-translate-y-0.5"
+          className="w-full h-12 bg-gradient-to-r from-emerald-600 via-yellow-500 to-emerald-600 hover:from-emerald-700 hover:via-yellow-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg"
         >
           {isLoading ? (
             <div className="flex items-center space-x-2">
@@ -236,7 +235,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
         {isLogin && (
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">
-              Demo Login: admin@desa.com / admin123
+              Demo Login: <span className="text-emerald-600 font-semibold">admin@desa.com</span> / <span className="text-yellow-600 font-semibold">admin123</span>
             </p>
           </div>
         )}
@@ -248,7 +247,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin, onToggle }) => {
           <button
             type="button"
             onClick={onToggle}
-            className="ml-1 text-green-600 hover:text-green-700 font-medium"
+            className="ml-1 text-emerald-600 hover:text-emerald-700 font-medium"
           >
             {isLogin ? 'Daftar sekarang' : 'Masuk di sini'}
           </button>

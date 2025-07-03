@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { User } from '../services/authService';
 import { Button } from './ui/button';
@@ -11,23 +10,23 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
   return (
-    <div className="bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 shadow-xl">
+    <div className="bg-gradient-to-r from-emerald-600 via-gray-800 to-emerald-600 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="w-14 h-14 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/30 shadow-lg">
                 <Calendar className="w-7 h-7 text-white" />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Bell className="w-2 h-2 text-yellow-800" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full flex items-center justify-center">
+                <Bell className="w-2 h-2 text-emerald-800" />
               </div>
             </div>
             <div className="text-white">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">
                 Sistem Pengingat Jadwal
               </h1>
-              <p className="text-green-100 font-medium">Dashboard Manajemen Kegiatan Warga</p>
+              <p className="text-emerald-100 font-medium">Dashboard Manajemen Kegiatan Warga</p>
             </div>
           </div>
           
@@ -35,12 +34,12 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
             <div className="hidden md:flex items-center space-x-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
                 <div className="flex items-center space-x-3 text-white">
-                  <div className="w-10 h-10 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center">
-                    <UserIcon className="w-5 h-5" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                    <UserIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">{user?.nama}</p>
-                    <p className="text-xs text-green-100 bg-white/20 px-2 py-0.5 rounded-full inline-block">
+                    <p className="text-xs text-emerald-100 bg-yellow-500/30 px-2 py-0.5 rounded-full inline-block">
                       {user?.role}
                     </p>
                   </div>
@@ -75,12 +74,12 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
         <div className="md:hidden pb-4">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
             <div className="flex items-center space-x-3 text-white">
-              <div className="w-8 h-8 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center">
-                <UserIcon className="w-4 h-4" />
+              <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                <UserIcon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-bold">{user?.nama}</p>
-                <p className="text-xs text-green-100">{user?.role}</p>
+                <p className="text-xs text-emerald-100">{user?.role}</p>
               </div>
             </div>
           </div>
